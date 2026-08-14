@@ -6,14 +6,17 @@ import OpenAI from "openai";
 dotenv.config();
 
 const app = express();
-const PORT = 3000;
+
+// Render gives us the PORT.
+// 3000 is used when running locally.
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
 
 console.log(
     "API Key loaded:",
-    process.env.GROQ_API_KEY ? "YES" : "NO"
+    process.env.GROQ_API_KEY ? "YES ✅" : "NO ❌"
 );
 
 const client = new OpenAI({
@@ -34,6 +37,7 @@ app.post("/analyze", async (req, res) => {
         const response = await client.chat.completions.create({
             model: "llama-3.3-70b-versatile",
             temperature: 0.3,
+
             messages: [
                 {
                     role: "system",
@@ -83,7 +87,7 @@ Rules:
             ]
         });
 
-        const raw = response.choices[0].message.content;
+        const raw = response.choices?.[0]?.message?.content;
 
         console.log("AI RESPONSE:");
         console.log(raw);
@@ -107,16 +111,21 @@ Rules:
             });
         }
 
+        // Make sure score is valid
         let score = Number(result.score);
 
         if (Number.isNaN(score)) {
             score = 0;
         }
 
-        score = Math.max(0, Math.min(100, Math.round(score)));
+        score = Math.max(
+            0,
+            Math.min(100, Math.round(score))
+        );
 
         result.score = score;
 
+        // Make sure arrays exist
         if (!Array.isArray(result.redFlags)) {
             result.redFlags = [];
         }
@@ -129,6 +138,7 @@ Rules:
             result.greenFlags = [];
         }
 
+        // Make sure text fields exist
         if (!result.analysis) {
             result.analysis = "No analysis available.";
         }
@@ -141,6 +151,7 @@ Rules:
             result.verdict = "No verdict available.";
         }
 
+        // Validate level
         const levels = [
             "Low",
             "Moderate",
@@ -171,12 +182,14 @@ Rules:
     }
 });
 
+// Health check
 app.get("/", (req, res) => {
     res.send("🚩 Red Flag Detector backend is running!");
 });
 
-app.listen(PORT, () => {
+// Start server
+app.listen(PORT, "0.0.0.0", () => {
     console.log(
-        "🚩 Server running on http://localhost:" + PORT
+        `🚩 Red Flag Detector server running on port ${PORT}`
     );
-});n
+});
