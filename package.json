@@ -1,4 +1,10 @@
 {
+  "name": "red-flag-detector",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
   "dependencies": {
     "@google/genai": "^2.15.0",
     "cors": "^2.8.6",
